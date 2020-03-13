@@ -1,0 +1,75 @@
+#Constants
+DIR=`pwd`
+PROJECT_DIR=
+SECOND_DISK_SIZE=
+BASE_IMAGE=
+#Functions
+usage()
+{
+
+    echo "Usage: $0 -p prject_path -d [second_disk_size] "
+}
+
+choose_base_image()
+{
+
+    local PATH=`pwd`/base_image
+    local file_options=()
+ for entry in "$PATH"/*.img; do
+      #echo $entry
+      file_options=("${file_options[@]}" "`/usr/bin/basename $entry`") # Add new element at the end of array
+  done
+file_options=("${file_options[@]}" "Quit")
+PS3='Please enter your choice: '
+#file_options=("option1")
+#file_options=($file_options "option2")
+#file_options=("Option 1" "Option 2" "Option 3" "Quit")
+select opt in "${file_options[@]}"
+do
+    case $opt in
+        *.img)
+            echo "you chose choice $REPLY which is $opt"
+            echo $opt
+            return 0
+               ;;
+        "Quit")
+               break
+               ;;       
+        *) echo "invalid option $REPLY";;
+    esac
+done
+ 
+}
+
+
+#Check the parameters
+if [ "$#" = 0 ]; then
+   echo "Please follow the usage."
+   usage
+   exit
+fi
+while [ "$1" != "" ]; do
+    case $1 in
+        -p )                    shift
+                                PROJECT_DIR=$1
+                                ;;
+        -d )                    shift
+                                SECOND_DISK_SIZE=$1
+                                ;;                                                                
+        -h | --help )           usage
+                                exit
+                                ;;
+        * )                     usage
+                                exit 1
+    esac
+    shift
+
+done
+
+if [ ! -d "./$PROJECT_DIR" ]; then
+   echo "$PROJECT_DIR you give does NOT exist.Please give a new one."
+   exit
+fi
+BASE_IMAGE="$(choose_base_image)"
+#awk '{ if($1 !~ /^\[/ && $1 !~ /^ansible/ ) {split($2,res,"="); print "-n "$1" -i "res[2]"\n"}}' ./$PROJECT_DIR/inventory|xargs -n2 ./scripts/kvm-install-vm-2.sh
+awk '{ if($1 !~ /^\[/ && $1 !~ /^ansible/ ) {split($2,res,"="); print "-n "$1" -i "res[2]"\n"}}' ./$PROJECT_DIR/inventory
