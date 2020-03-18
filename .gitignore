@@ -1,0 +1,6 @@
+*.img
+/tmp/*
+id_rsa*
+test*
+prjects/*
+launch.json

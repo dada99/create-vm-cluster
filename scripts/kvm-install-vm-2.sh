@@ -18,10 +18,9 @@ DIR=`pwd`
 BASE_IMAGE_PATH="base_image"
 
 #Base image for VM
-BASE_IMAGE="xenial-server-cloudimg-amd64-disk1-5G.img"
+#BASE_IMAGE="xenial-server-cloudimg-amd64-disk1-5G.img"
+BASE_IMAGE=
 
-# Location of cloud image
-IMAGE=$DIR/$BASE_IMAGE_PATH/$BASE_IMAGE
 
 # Amount of RAM in MB
 MEM=2048
@@ -99,7 +98,8 @@ while [ "$1" != "" ]; do
         -h | --help )           usage
                                 exit
                                 ;;
-        * )                     usage
+        * )                     echo "Unknow input: $@"
+                                usage
                                 exit 1
     esac
     shift
@@ -117,33 +117,34 @@ DISK=$NODENAME.qcow2
 virsh dominfo $NODENAME > /dev/null 2>&1
 if [ "$?" -eq 0 ]; then
     echo -n "[WARNING] $NODENAME already exists.  "
-    read -p "Do you want to overwrite $NODENAME (y/[N])? " -r
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
+    #read -p "Do you want to overwrite $NODENAME (y/[N])? " -r
+    #if [[ $REPLY =~ ^[Yy]$ ]]; then
         echo ""
         virsh destroy $NODENAME > /dev/null
         virsh undefine $NODENAME > /dev/null
-    else
-        echo -e "\nNot overwriting $NODENAME. Exiting..."
-        exit 1
-    fi
+    #else
+    #    echo -e "\nNot overwriting $NODENAME. Exiting..."
+    #    exit 1
+    #fi
 fi
 
-echo $IPADDRESS
+# Location of base image
+IMAGE=$DIR/$BASE_IMAGE_PATH/$BASE_IMAGE
+echo "Base Image is: $IMAGE"
 
 # Start clean
+echo "$(date -R) Destroying the $NODENAME domain (if it exists)..."
+
+    # Remove domain with the same name
+    virsh destroy $NODENAME
+    virsh undefine $NODENAME 
 rm -rf $DIR/tmp/$PROJECT/$NODENAME
 mkdir -p $DIR/tmp/$PROJECT/$NODENAME
 
 pushd $DIR/tmp/$PROJECT/$NODENAME > /dev/null
 
     # Create log file
-    touch $NODENAME.log
-
-    echo "$(date -R) Destroying the $NODENAME domain (if it exists)..."
-
-    # Remove domain with the same name
-    virsh destroy $NODENAME >> $NODENAME.log 2>&1
-    virsh undefine $NODENAME >> $NODENAME.log 2>&1
+    touch $NODENAME.log    
 
     # cloud-init config: set hostname, remove cloud-init package,
     # and add ssh-key 

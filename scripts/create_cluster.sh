@@ -28,7 +28,7 @@ select opt in "${file_options[@]}"
 do
     case $opt in
         *.img)
-            echo "you chose choice $REPLY which is $opt"
+            #echo "you chose choice $REPLY which is $opt"
             echo $opt
             return 0
                ;;
@@ -66,10 +66,11 @@ while [ "$1" != "" ]; do
 
 done
 
-if [ ! -d "./$PROJECT_DIR" ]; then
+if [ ! -d "./projects/$PROJECT_DIR" ]; then
    echo "$PROJECT_DIR you give does NOT exist.Please give a new one."
    exit
 fi
 BASE_IMAGE="$(choose_base_image)"
 #awk '{ if($1 !~ /^\[/ && $1 !~ /^ansible/ ) {split($2,res,"="); print "-n "$1" -i "res[2]"\n"}}' ./$PROJECT_DIR/inventory|xargs -n2 ./scripts/kvm-install-vm-2.sh
-awk '{ if($1 !~ /^\[/ && $1 !~ /^ansible/ ) {split($2,res,"="); print "-n "$1" -i "res[2]"\n"}}' ./$PROJECT_DIR/inventory
+awk '{ if($1 !~ /^\[/ && $1 !~ /^ansible/ ) {split($2,res,"="); print "-n "$1" -i "res[2]}}' ./projects/$PROJECT_DIR/inventory|xargs -n2 -l printf "./scripts/kvm-install-vm-2.sh %s %s %s %s -p $PROJECT_DIR -B $BASE_IMAGE\n"|xargs -I {} bash -c {}
+#awk '{ if($1 !~ /^\[/ && $1 !~ /^ansible/ ) {split($2,res,"="); print "-n "$1" -i "res[2]}}' ./projects/$PROJECT_DIR/inventory|xargs -n2 -l printf "./scripts/kvm-install-vm-2.sh %s %s %s %s -p $PROJECT_DIR -B $BASE_IMAGE\n"
