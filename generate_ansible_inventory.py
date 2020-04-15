@@ -57,3 +57,21 @@ with f2.open('w') as f:
         print(msg)
         f.write(msg)
         f.write('\n')
+
+#Change template path for start and shutdown scripts
+template_path = '{}/templates/'.format(os.path.dirname(os.path.abspath(__file__)))
+loader = FileSystemLoader(template_path)
+env = Environment(loader=loader)
+#Generate startup script
+startup_cluster_script = my_path / 'startup-cluster.sh'
+startup_cluster_template = env.get_template('startup-cluster.j2')
+with startup_cluster_script.open('w') as f:
+    msg = startup_cluster_template.render(project_n=project_name) # startup-cluster.sh
+    f.write(msg)
+#Generate startup script
+shutdown_cluster_script = my_path / 'shutdown-cluster.sh'
+shutdown_cluster_template = env.get_template('shutdown-cluster.j2')
+with shutdown_cluster_script.open('w') as f:
+    msg = shutdown_cluster_template.render(project_n=project_name) # shutdown-cluster.sh
+    f.write(msg)    
+    

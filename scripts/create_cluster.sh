@@ -7,7 +7,7 @@ BASE_IMAGE=
 usage()
 {
 
-    echo "Usage: $0 -p prject_path -d [second_disk_size] "
+    echo "Usage: $0 -p project_path -d [second_disk_size] "
 }
 
 choose_base_image()
