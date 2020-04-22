@@ -1,0 +1,36 @@
+#!/bin/bash
+if (( $EUID != 0 )); then
+    echo "Please run as root"
+    exit
+fi
+DIR=`pwd`
+# PS3='Do you really want to remove these VMs: Y or N'
+# #opts=("Y" "N")
+# #select opt in ${opts}
+echo "Do you really want to remove these VMs"
+for entry in "$DIR"/vms/*; do
+      echo $entry
+done
+read -p "Y or N ?" reply
+
+case $reply in
+    "y")
+        REMOVE=1
+        ;;
+    "n")
+        REMOVE=0
+        ;;       
+    *) echo "invalid option $reply";;
+esac
+
+if [ "$REMOVE" = 1 ]; then
+   echo "Remove them"
+   for i in $(virsh list --all|grep ubuntu-lab-{{ project_n }} |gawk '{print $2}')
+    do 
+    echo "Removing $i"
+    virsh undefine $i
+    done
+   rm -rf $DIR/vms
+else 
+   echo "You decide to save them."
+fi

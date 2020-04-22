@@ -138,10 +138,10 @@ echo "$(date -R) Destroying the $NODENAME domain (if it exists)..."
     # Remove domain with the same name
     virsh destroy $NODENAME
     virsh undefine $NODENAME 
-rm -rf $DIR/tmp/$PROJECT/$NODENAME
-mkdir -p $DIR/tmp/$PROJECT/$NODENAME
+rm -rf $DIR/projects/$PROJECT/vms/$NODENAME
+mkdir -p $DIR/projects/$PROJECT/vms/$NODENAME
 
-pushd $DIR/tmp/$PROJECT/$NODENAME > /dev/null
+pushd $DIR/projects/$PROJECT/vms/$NODENAME > /dev/null
 
     # Create log file
     touch $NODENAME.log    

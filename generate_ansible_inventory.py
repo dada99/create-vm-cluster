@@ -68,10 +68,16 @@ startup_cluster_template = env.get_template('startup-cluster.j2')
 with startup_cluster_script.open('w') as f:
     msg = startup_cluster_template.render(project_n=project_name) # startup-cluster.sh
     f.write(msg)
-#Generate startup script
+#Generate shutdown script
 shutdown_cluster_script = my_path / 'shutdown-cluster.sh'
 shutdown_cluster_template = env.get_template('shutdown-cluster.j2')
 with shutdown_cluster_script.open('w') as f:
     msg = shutdown_cluster_template.render(project_n=project_name) # shutdown-cluster.sh
-    f.write(msg)    
+    f.write(msg)
+#Generate remove VM script
+shutdown_cluster_script = my_path / 'remove-cluster.sh'
+shutdown_cluster_template = env.get_template('remove-cluster.j2')
+with shutdown_cluster_script.open('w') as f:
+    msg = shutdown_cluster_template.render(project_n=project_name) # remove-cluster.sh
+    f.write(msg)        
     

@@ -1,0 +1,8 @@
+[k8s-lab-k8s-116-0]
+ubuntu-lab-k8s-116-0-master    ansible_ssh_host=192.168.122.100	    ansible_user=ubuntu
+ubuntu-lab-k8s-116-0-worker-1	ansible_ssh_host=192.168.122.101	ansible_user=ubuntu
+ubuntu-lab-k8s-116-0-worker-2	ansible_ssh_host=192.168.122.102	ansible_user=ubuntu
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+ansible_ssh_user=ubuntu
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
