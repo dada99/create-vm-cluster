@@ -1,3 +1,4 @@
+#!/bin/bash
 #Constants
 DIR=`pwd`
 PROJECT_DIR=
