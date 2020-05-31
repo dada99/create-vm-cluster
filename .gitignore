@@ -4,3 +4,4 @@ id_rsa*
 test*
 prjects/*
 launch.json
+settings.json
