@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/python3
 from jinja2 import Template,Environment, FileSystemLoader
 import os,sys
 import ipaddress
