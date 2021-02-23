@@ -4,9 +4,14 @@ import os,sys
 import ipaddress
 from pathlib import Path
 PROJECT_PATH='{}/projects/{}/'
-FIRST_IP = u'192.168.122.100'
+if (len(sys.argv) > 1):
+    FIRST_IP = sys.argv[1]
+else:
+    FIRST_IP = u'192.168.122.100'
+print(FIRST_IP)
 FIRST_IP_ADDR = ipaddress.IPv4Address(FIRST_IP)
-project_type = sys.argv[1] if len(sys.argv) > 1 else "k8s-1m-2w" # 
+#project_type = sys.argv[1] if len(sys.argv) > 1 else "k8s-1m-2w" #
+project_type = "k8s-1m-2w"
 print('Using {} type to generate.'.format(project_type))
 project_name = input("Give your project a name? ")
 
@@ -57,6 +62,10 @@ with f2.open('w') as f:
         print(msg)
         f.write(msg)
         f.write('\n')
+    #inventory_all_vars_template = env.get_template('k8s-1m-2w-hosts-all.j2')
+    #inventory_all_vars = inventory_all_vars_template.render() # Append inventory will all_vars section
+    print(env.get_template('k8s-1m-2w-hosts-all.j2').render())
+    f.write(env.get_template('k8s-1m-2w-hosts-all.j2').render())
 
 #Change template path for start and shutdown scripts
 template_path = '{}/templates/'.format(os.path.dirname(os.path.abspath(__file__)))

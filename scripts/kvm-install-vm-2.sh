@@ -33,7 +33,7 @@ PROJECT='just-try'
 
 
 # Bridge for VMs (default on Fedora is virbr0)
-BRIDGE=virbr0
+BRIDGE=virbr1
 
 #Name of the node
 NODENAME=
