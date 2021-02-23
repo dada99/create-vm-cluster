@@ -1,6 +1,8 @@
 *.img
+pip-packages/*.whl
 /tmp/*
 id_rsa*
 test*
 prjects/*
 launch.json
+settings.json

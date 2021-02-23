@@ -189,7 +189,7 @@ chpasswd:  # If not set, the system will ask you to setup password for default u
 bootcmd:
   - ifup ens3  # Bring up ens3 interface manually
   - echo "nameserver 223.5.5.5" >> /etc/resolv.conf
-  - echo "$NODENAME       $IPADDRESS" >> /etc/hosts
+  - echo "$IPADDRESS       $NODENAME" >> /etc/hosts
 _EOF_
 
 
