@@ -33,7 +33,7 @@ PROJECT='just-try'
 
 
 # Bridge for VMs (default on Fedora is virbr0)
-BRIDGE=virbr1
+BRIDGE=virbr0
 
 #Name of the node
 NODENAME=
@@ -224,21 +224,21 @@ fi
     echo "$(date -R) Installing the domain and adjusting the configuration..."
     echo "[INFO] Installing with the following parameters:"
     if [ "$SECOND_DISK_SIZE" = "" ]; then
-    echo "virt-install --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk     
+    echo "virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk     
     $DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1M --network
     bridge=$BRIDGE,model=virtio --os-type=linux --os-variant=ubuntu16.04 --noautoconsole"
 
-    virt-install --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk \
+    virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk \
     $DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom --network \
     bridge=$BRIDGE,model=virtio --os-type=linux --os-variant=ubuntu16.04 --noautoconsole
     else 
       echo "Create second disk for $NODENAME"
       qemu-img create -f qcow2 $NODENAME-2.qcow2 $SECOND_DISK_SIZE
-      echo "virt-install --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk     
+      echo "virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk     
       $DISK,format=qcow2,bus=virtio --disk     
       $NODENAME-2.qcow2,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1M --network
       bridge=$BRIDGE,model=virtio --os-type=linux --os-variant=ubuntu16.04 --noautoconsole"
-      sudo virt-install --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk \
+      sudo virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk \
       $DISK,format=qcow2,bus=virtio --disk \
       $NODENAME-2.qcow2,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom --network \
       bridge=$BRIDGE,model=virtio --os-type=linux --os-variant=ubuntu16.04 --noautoconsole
