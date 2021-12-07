@@ -4,11 +4,12 @@ DIR=`pwd`
 PROJECT_DIR=
 SECOND_DISK_SIZE=
 BASE_IMAGE=
+SECOND_BRIDGE=
 #Functions
 usage()
 {
 
-    echo "Usage: $0 -p project_path -d [second_disk_size] "
+    echo "Usage: $0 -p project_path -d [second_disk_size] -b [second_bridge]"
 }
 
 choose_base_image()
@@ -56,6 +57,9 @@ while [ "$1" != "" ]; do
                                 ;;
         -d )                    shift
                                 SECOND_DISK_SIZE=$1
+                                ;;
+        -b )                    shift
+                                SECOND_BRIDGE=$1
                                 ;;                                                                
         -h | --help )           usage
                                 exit
@@ -71,10 +75,15 @@ if [ ! -d "./projects/$PROJECT_DIR" ]; then
    echo "$PROJECT_DIR you give does NOT exist.Please give a new one."
    exit
 fi
+
 BASE_IMAGE="$(choose_base_image)"
-if [ ! $SECOND_DISK_SIZE ]; then
+if [ "$SECOND_DISK_SIZE" = "" ] && [ "$SECOND_BRIDGE" = "" ]; then
 awk '{ if($1 !~ /^\[/ && $1 !~ /^ansible/ ) {split($2,res,"="); print "-n "$1" -i "res[2]}}' ./projects/$PROJECT_DIR/inventory|xargs -n2 -l printf "./scripts/kvm-install-vm-2.sh %s %s %s %s -p $PROJECT_DIR -B $BASE_IMAGE\n"|xargs -I {} bash -c {}
+elif [ "$SECOND_BRIDGE" = "" ]; then
+awk '{ if($1 !~ /^\[/ && $1 !~ /^ansible/ ) {split($2,res,"="); print "-n "$1" -i "res[2]}}' ./projects/$PROJECT_DIR/inventory|xargs -n2 -l printf "./scripts/kvm-install-vm-2.sh %s %s %s %s %s %s -p $PROJECT_DIR -B $BASE_IMAGE -d $SECOND_DISK_SIZE\n"|xargs -I {} bash -c {}
+elif [ "$SECOND_DISK_SIZE" = "" ]; then
+awk '{ if($1 !~ /^\[/ && $1 !~ /^ansible/ ) {split($2,res,"="); print "-n "$1" -i "res[2]}}' ./projects/$PROJECT_DIR/inventory|xargs -n2 -l printf "./scripts/kvm-install-vm-2.sh %s %s %s %s %s %s-p $PROJECT_DIR -B $BASE_IMAGE -BR $SECOND_BRIDGE\n"|xargs -I {} bash -c {}
 else
-awk '{ if($1 !~ /^\[/ && $1 !~ /^ansible/ ) {split($2,res,"="); print "-n "$1" -i "res[2]}}' ./projects/$PROJECT_DIR/inventory|xargs -n2 -l printf "./scripts/kvm-install-vm-2.sh %s %s %s %s -p $PROJECT_DIR -B $BASE_IMAGE -d $SECOND_DISK_SIZE\n"|xargs -I {} bash -c {}
+awk '{ if($1 !~ /^\[/ && $1 !~ /^ansible/ ) {split($2,res,"="); print "-n "$1" -i "res[2]}}' ./projects/$PROJECT_DIR/inventory|xargs -n2 -l printf "./scripts/kvm-install-vm-2.sh %s %s %s %s %s %s %s %s -p $PROJECT_DIR -B $BASE_IMAGE -d $SECOND_DISK_SIZE -BR $SECOND_BRIDGE\n"|xargs -I {} bash -c {}
 fi
 

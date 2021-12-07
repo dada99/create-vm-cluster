@@ -23,10 +23,10 @@ BASE_IMAGE=
 
 
 # Amount of RAM in MB
-MEM=2048
+MEM=4096
 
 # Number of virtual CPUs
-CPUS=1
+CPUS=2
 
 #Name of the project
 PROJECT='just-try'
@@ -43,6 +43,9 @@ IPADDRESS=
 
 #Second disk size
 SECOND_DISK_SIZE=
+
+#Second bridge for 2nd NIC
+SECOND_BRIDGE=
 
 #SSH Public key file used to inject into VM
 SSH_PUB_KEY_FILE="$DIR/ssh_keys/id_rsa.pub"
@@ -94,7 +97,10 @@ while [ "$1" != "" ]; do
                                 ;;
         -B | --baseimage )      shift
                                 BASE_IMAGE=$1
-                                ;;                                                                                                                                      
+                                ;;       
+        -BR | --bridge )      shift
+                                SECOND_BRIDGE=$1
+                                ;;                                                                                                                                                                 
         -h | --help )           usage
                                 exit
                                 ;;
@@ -220,10 +226,11 @@ fi
     # genisoimage belongs to cdrtools package.
     echo "$(date -R) Generating ISO for cloud-init..."
     genisoimage -output $CI_ISO -volid cidata -joliet -r $USER_DATA $META_DATA &>> NODENAME.log
-
+    echo "$SECOND_DISK_SIZE"
+    echo "$SECOND_BRIDGE"
     echo "$(date -R) Installing the domain and adjusting the configuration..."
     echo "[INFO] Installing with the following parameters:"
-    if [ "$SECOND_DISK_SIZE" = "" ]; then
+    if [ "$SECOND_DISK_SIZE" = "" ] && [ "$SECOND_BRIDGE" = "" ]; then
     echo "virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk     
     $DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1M --network
     bridge=$BRIDGE,model=virtio --os-type=linux --os-variant=ubuntu16.04 --noautoconsole"
@@ -231,17 +238,43 @@ fi
     virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk \
     $DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom --network \
     bridge=$BRIDGE,model=virtio --os-type=linux --os-variant=ubuntu16.04 --noautoconsole
-    else 
+    elif  [ "$SECOND_BRIDGE" = "" ]; then
       echo "Create second disk for $NODENAME"
       qemu-img create -f qcow2 $NODENAME-2.qcow2 $SECOND_DISK_SIZE
       echo "virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk     
       $DISK,format=qcow2,bus=virtio --disk     
       $NODENAME-2.qcow2,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1M --network
       bridge=$BRIDGE,model=virtio --os-type=linux --os-variant=ubuntu16.04 --noautoconsole"
+
       sudo virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk \
       $DISK,format=qcow2,bus=virtio --disk \
       $NODENAME-2.qcow2,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom --network \
       bridge=$BRIDGE,model=virtio --os-type=linux --os-variant=ubuntu16.04 --noautoconsole
+
+    elif  [ "$SECOND_DISK_SIZE" = "" ]; then
+    echo "Create second NIC for $NODENAME"
+    echo "virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk     
+    $DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1 --network
+    bridge=$BRIDGE,model=virtio --network bridge=$SECOND_BRIDGE,model=virtio 
+    --os-type=linux --os-variant=ubuntu16.04 --noautoconsole"
+
+    virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk \
+    $DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1 --network \
+    bridge=$BRIDGE,model=virtio --network bridge=$SECOND_BRIDGE,model=virtio \
+    --os-type=linux --os-variant=ubuntu16.04 --noautoconsole
+
+    else
+    echo "Create second disk and second NIC for $NODENAME"
+    echo "virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk     
+    $DISK,format=qcow2,bus=virtio --disk     
+    $NODENAME-2.qcow2,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1 --network
+    bridge=$BRIDGE,model=virtio --network bridge=$SECOND_BRIDGE,model=virtio 
+    --os-type=linux --os-variant=ubuntu16.04 --noautoconsole"
+
+    virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk \
+    $DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1 --network \
+    bridge=$BRIDGE,model=virtio --network bridge=$SECOND_BRIDGE,model=virtio \
+    --os-type=linux --os-variant=ubuntu16.04 --noautoconsole
     fi
        
 
