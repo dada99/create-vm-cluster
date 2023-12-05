@@ -3,6 +3,6 @@ pip-packages/*.whl
 /tmp/*
 id_rsa*
 test*
-prjects/*
+projects/*
 launch.json
 settings.json

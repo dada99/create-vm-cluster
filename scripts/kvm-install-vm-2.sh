@@ -115,8 +115,8 @@ done
 # Cloud init files
 USER_DATA=user-data
 META_DATA=meta-data
-CI_ISO=$NODENAME-cidata.iso
-DISK=$NODENAME.qcow2
+CI_ISO="$NODENAME-cidata.iso"
+DISK="$NODENAME.qcow2"
 
 
 # Check if domain already exists
@@ -218,90 +218,90 @@ fi
     
 
     
-    echo "$(date -R) Copying template image..."
-    cp $IMAGE $DISK
+echo "$(date -R) Copying template image..."
+cp $IMAGE $DISK
+
+
+# Create CD-ROM ISO with cloud-init config
+# genisoimage belongs to cdrtools package.
+echo "$(date -R) Generating ISO for cloud-init..."
+genisoimage -output $CI_ISO -volid cidata -joliet -r $USER_DATA $META_DATA &>> NODENAME.log
+echo "$SECOND_DISK_SIZE"
+echo "$SECOND_BRIDGE"
+echo "$(date -R) Installing the domain and adjusting the configuration..."
+echo "[INFO] Installing with the following parameters:"
+if [ "$SECOND_DISK_SIZE" = "" ] && [ "$SECOND_BRIDGE" = "" ]; then
+echo "virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk     
+$DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1M --network
+bridge=$BRIDGE,model=virtio --os-type=linux --os-variant=ubuntu16.04 --noautoconsole"
+
+virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk \
+$DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom --network \
+bridge=$BRIDGE,model=virtio --os-type=linux --os-variant=ubuntu16.04 --noautoconsole
+elif  [ "$SECOND_BRIDGE" = "" ]; then
+  echo "Create second disk for $NODENAME"
+  qemu-img create -f qcow2 $NODENAME-2.qcow2 $SECOND_DISK_SIZE
+  echo "virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk     
+  $DISK,format=qcow2,bus=virtio --disk     
+  $NODENAME-2.qcow2,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1M --network
+  bridge=$BRIDGE,model=virtio --os-type=linux --os-variant=ubuntu16.04 --noautoconsole"
+
+  sudo virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk \
+  $DISK,format=qcow2,bus=virtio --disk \
+  $NODENAME-2.qcow2,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom --network \
+  bridge=$BRIDGE,model=virtio --os-type=linux --os-variant=ubuntu16.04 --noautoconsole
+
+elif  [ "$SECOND_DISK_SIZE" = "" ]; then
+echo "Create second NIC for $NODENAME"
+echo "virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk     
+$DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1 --network
+bridge=$BRIDGE,model=virtio --network bridge=$SECOND_BRIDGE,model=virtio 
+--os-type=linux --os-variant=ubuntu16.04 --noautoconsole"
+
+virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk \
+$DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1 --network \
+bridge=$BRIDGE,model=virtio --network bridge=$SECOND_BRIDGE,model=virtio \
+--os-type=linux --os-variant=ubuntu16.04 --noautoconsole
+
+else
+echo "Create second disk and second NIC for $NODENAME"
+echo "virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk     
+$DISK,format=qcow2,bus=virtio --disk     
+$NODENAME-2.qcow2,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1 --network
+bridge=$BRIDGE,model=virtio --network bridge=$SECOND_BRIDGE,model=virtio 
+--os-type=linux --os-variant=ubuntu16.04 --noautoconsole"
+
+virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk \
+$DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1 --network \
+bridge=$BRIDGE,model=virtio --network bridge=$SECOND_BRIDGE,model=virtio \
+--os-type=linux --os-variant=ubuntu16.04 --noautoconsole
+fi
     
 
-    # Create CD-ROM ISO with cloud-init config
-    # genisoimage belongs to cdrtools package.
-    echo "$(date -R) Generating ISO for cloud-init..."
-    genisoimage -output $CI_ISO -volid cidata -joliet -r $USER_DATA $META_DATA &>> NODENAME.log
-    echo "$SECOND_DISK_SIZE"
-    echo "$SECOND_BRIDGE"
-    echo "$(date -R) Installing the domain and adjusting the configuration..."
-    echo "[INFO] Installing with the following parameters:"
-    if [ "$SECOND_DISK_SIZE" = "" ] && [ "$SECOND_BRIDGE" = "" ]; then
-    echo "virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk     
-    $DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1M --network
-    bridge=$BRIDGE,model=virtio --os-type=linux --os-variant=ubuntu16.04 --noautoconsole"
-
-    virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk \
-    $DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom --network \
-    bridge=$BRIDGE,model=virtio --os-type=linux --os-variant=ubuntu16.04 --noautoconsole
-    elif  [ "$SECOND_BRIDGE" = "" ]; then
-      echo "Create second disk for $NODENAME"
-      qemu-img create -f qcow2 $NODENAME-2.qcow2 $SECOND_DISK_SIZE
-      echo "virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk     
-      $DISK,format=qcow2,bus=virtio --disk     
-      $NODENAME-2.qcow2,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1M --network
-      bridge=$BRIDGE,model=virtio --os-type=linux --os-variant=ubuntu16.04 --noautoconsole"
-
-      sudo virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk \
-      $DISK,format=qcow2,bus=virtio --disk \
-      $NODENAME-2.qcow2,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom --network \
-      bridge=$BRIDGE,model=virtio --os-type=linux --os-variant=ubuntu16.04 --noautoconsole
-
-    elif  [ "$SECOND_DISK_SIZE" = "" ]; then
-    echo "Create second NIC for $NODENAME"
-    echo "virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk     
-    $DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1 --network
-    bridge=$BRIDGE,model=virtio --network bridge=$SECOND_BRIDGE,model=virtio 
-    --os-type=linux --os-variant=ubuntu16.04 --noautoconsole"
-
-    virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk \
-    $DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1 --network \
-    bridge=$BRIDGE,model=virtio --network bridge=$SECOND_BRIDGE,model=virtio \
-    --os-type=linux --os-variant=ubuntu16.04 --noautoconsole
-
-    else
-    echo "Create second disk and second NIC for $NODENAME"
-    echo "virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk     
-    $DISK,format=qcow2,bus=virtio --disk     
-    $NODENAME-2.qcow2,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1 --network
-    bridge=$BRIDGE,model=virtio --network bridge=$SECOND_BRIDGE,model=virtio 
-    --os-type=linux --os-variant=ubuntu16.04 --noautoconsole"
-
-    virt-install --cpu host --import --name $NODENAME --ram $MEM --vcpus $CPUS --disk \
-    $DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom,size=1 --network \
-    bridge=$BRIDGE,model=virtio --network bridge=$SECOND_BRIDGE,model=virtio \
-    --os-type=linux --os-variant=ubuntu16.04 --noautoconsole
-    fi
-       
-
 if [ $# -eq 1 ]; then
-    echo "Get DHCP IP"
-    MAC=$(virsh dumpxml $NODENAME | awk -F\' '/mac address/ {print $IPADDRESS}')
-    while true
-    do
-        IP=$(grep -B1 $MAC /var/lib/libvirt/dnsmasq/$BRIDGE.status | head \
-             -n 1 | awk '{print IPADDRESS}' | sed -e s/\"//g -e s/,//)
-        if [ "$IP" = "" ]
-        then
-            sleep 1
-        else
-            break
-        fi
-    done
+echo "Get DHCP IP"
+MAC=$(virsh dumpxml $NODENAME | awk -F\' '/mac address/ {print $IPADDRESS}')
+while true
+do
+    IP=$(grep -B1 $MAC /var/lib/libvirt/dnsmasq/$BRIDGE.status | head \
+          -n 1 | awk '{print IPADDRESS}' | sed -e s/\"//g -e s/,//)
+    if [ "$IP" = "" ]
+    then
+        sleep 1
+    else
+        break
+    fi
+done
 else
-    IP=$IPADDRESS
+IP=$IPADDRESS
 fi
-    # Eject cdrom
-    #echo "$(date -R) Cleaning up cloud-init..."
-    #virsh change-media NODENAME hda --eject --config >> NODENAME.log
+# Eject cdrom
+#echo "$(date -R) Cleaning up cloud-init..."
+#virsh change-media NODENAME hda --eject --config >> NODENAME.log
 
-    # Remove the unnecessary cloud init files
-    #rm $USER_DATA $CI_ISO
+# Remove the unnecessary cloud init files
+#rm $USER_DATA $CI_ISO
 
-    echo "$(date -R) DONE. SSH to $NODENAME using $IP with  username 'ubuntu'."
+echo "$(date -R) DONE. SSH to $NODENAME using $IP with  username 'ubuntu'."
 
-popd > /dev/null
+  popd > /dev/null

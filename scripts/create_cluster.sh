@@ -76,14 +76,35 @@ if [ ! -d "./projects/$PROJECT_DIR" ]; then
    exit
 fi
 
+tmpansibleout="$(ansible-inventory -i ./projects/$PROJECT_DIR/inventory --list)"
+hostlist=$(echo "$tmpansibleout"|jq '._meta.hostvars|keys[]') # Get host list from ansible-inventory
 BASE_IMAGE="$(choose_base_image)"
-if [ "$SECOND_DISK_SIZE" = "" ] && [ "$SECOND_BRIDGE" = "" ]; then
-awk '{ if($1 !~ /^\[/ && $1 !~ /^ansible/ ) {split($2,res,"="); print "-n "$1" -i "res[2]}}' ./projects/$PROJECT_DIR/inventory|xargs -n2 -l printf "./scripts/kvm-install-vm-2.sh %s %s %s %s -p $PROJECT_DIR -B $BASE_IMAGE\n"|xargs -I {} bash -c {}
-elif [ "$SECOND_BRIDGE" = "" ]; then
-awk '{ if($1 !~ /^\[/ && $1 !~ /^ansible/ ) {split($2,res,"="); print "-n "$1" -i "res[2]}}' ./projects/$PROJECT_DIR/inventory|xargs -n2 -l printf "./scripts/kvm-install-vm-2.sh %s %s %s %s %s %s -p $PROJECT_DIR -B $BASE_IMAGE -d $SECOND_DISK_SIZE\n"|xargs -I {} bash -c {}
-elif [ "$SECOND_DISK_SIZE" = "" ]; then
-awk '{ if($1 !~ /^\[/ && $1 !~ /^ansible/ ) {split($2,res,"="); print "-n "$1" -i "res[2]}}' ./projects/$PROJECT_DIR/inventory|xargs -n2 -l printf "./scripts/kvm-install-vm-2.sh %s %s %s %s %s %s-p $PROJECT_DIR -B $BASE_IMAGE -BR $SECOND_BRIDGE\n"|xargs -I {} bash -c {}
-else
-awk '{ if($1 !~ /^\[/ && $1 !~ /^ansible/ ) {split($2,res,"="); print "-n "$1" -i "res[2]}}' ./projects/$PROJECT_DIR/inventory|xargs -n2 -l printf "./scripts/kvm-install-vm-2.sh %s %s %s %s %s %s %s %s -p $PROJECT_DIR -B $BASE_IMAGE -d $SECOND_DISK_SIZE -BR $SECOND_BRIDGE\n"|xargs -I {} bash -c {}
-fi
+for host in  $hostlist
+do
+  #echo "host: $host"
+  hostip=$(echo "$tmpansibleout"|jq "._meta.hostvars.$host.ansible_ssh_host"|sed 's/"//g')
+  host=$(echo $host|sed 's/"//g')  # Remove double quotes
+  if [ "$SECOND_DISK_SIZE" = "" ] && [ "$SECOND_BRIDGE" = "" ]; then
+    ./scripts/kvm-install-vm-2.sh -n $host -i $hostip -p $PROJECT_DIR -B $BASE_IMAGE
+  elif [ "$SECOND_BRIDGE" = "" ]; then
+    ./scripts/kvm-install-vm-2.sh -n $host  -i $hostip -p $PROJECT_DIR -B $BASE_IMAGE -d $SECOND_DISK_SIZE
+   elif [ "$SECOND_DISK_SIZE" = "" ]; then
+   /scripts/kvm-install-vm-2.sh -n $host  -i $hostip -p $PROJECT_DIR -B $BASE_IMAGE -BR $SECOND_BRIDGE
+  else
+    ./scripts/kvm-install-vm-2.sh -n $host  -i $hostip -p $PROJECT_DIR -B $BASE_IMAGE -BR $SECOND_BRIDGE -d $SECOND_DISK_SIZE
+    fi
+done
 
+#tmpargs=`awk 'NF { if($1 !~ /^[\[# ]/ && $1 !~ /^ansible/ ) {split($2,res,"="); print "-n "$1" -i "res[2]}}' ./projects/$PROJECT_DIR/inventory`
+# echo "tmpargs "$tmpargs
+# BASE_IMAGE="$(choose_base_image)"
+# if [ "$SECOND_DISK_SIZE" = "" ] && [ "$SECOND_BRIDGE" = "" ]; then
+# #echo $tmpargs|xargs -n2 -l printf "./scripts/kvm-install-vm-2.sh %s %s %s %s -p $PROJECT_DIR -B $BASE_IMAGE\n"|xargs -I {} bash -c {}
+# echo $tmpargs|xargs -0
+# elif [ "$SECOND_BRIDGE" = "" ]; then
+# echo $tmpargs|xargs -n2 -l printf "./scripts/kvm-install-vm-2.sh %s %s %s %s %s %s -p $PROJECT_DIR -B $BASE_IMAGE -d $SECOND_DISK_SIZE\n"|xargs -I {} bash -c {}
+# elif [ "$SECOND_DISK_SIZE" = "" ]; then
+# echo $tmpargs|xargs -n2 -l printf "./scripts/kvm-install-vm-2.sh %s %s %s %s %s %s-p $PROJECT_DIR -B $BASE_IMAGE -BR $SECOND_BRIDGE\n"|xargs -I {} bash -c {}
+# else
+# echo $tmpargs|xargs -n2 -l printf "./scripts/kvm-install-vm-2.sh %s %s %s %s %s %s %s %s -p $PROJECT_DIR -B $BASE_IMAGE -d $SECOND_DISK_SIZE -BR $SECOND_BRIDGE\n"|xargs -I {} bash -c {}
+# fi
